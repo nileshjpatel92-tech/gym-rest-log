@@ -171,6 +171,8 @@ function ensureAudio() {
 // Plays one tone. "at" is seconds from now; volume is 0..1.
 function tone(freq, at, duration, volume, wave = 'sine') {
   if (!audioCtx) return;
+  // iOS can pause our audio when other apps (like Spotify) take over the speaker; try to wake it
+  if (audioCtx.state !== 'running') audioCtx.resume();
   const t = audioCtx.currentTime + at;
   const osc = audioCtx.createOscillator();
   const gain = audioCtx.createGain();
@@ -185,18 +187,29 @@ function tone(freq, at, duration, volume, wave = 'sine') {
   osc.stop(t + duration + 0.05);
 }
 
-// Gentle single beep each minute
+// Higher pitches (1–2 kHz) cut through music better than low ones, which blend into bass and vocals.
+
+// Each minute: two quick high beeps
 function playMinuteBeep() {
-  tone(880, 0, 0.18, 0.2);
+  tone(1568, 0, 0.12, 0.7, 'triangle');
+  tone(1568, 0.2, 0.12, 0.7, 'triangle');
 }
 
-// Louder rising three-note chime, played twice, when you hit the target
+// Target reached: a buzzy rising three-note alarm, played three times. The "square" wave
+// sounds harsher than the minute beeps, so you can tell them apart without looking.
 function playTargetSound() {
-  for (const offset of [0, 0.7]) {
-    tone(660, offset + 0.0, 0.18, 0.6, 'triangle');
-    tone(880, offset + 0.18, 0.18, 0.6, 'triangle');
-    tone(1320, offset + 0.36, 0.3, 0.6, 'triangle');
+  for (const offset of [0, 0.75, 1.5]) {
+    tone(880, offset + 0.0, 0.16, 0.35, 'square');
+    tone(1175, offset + 0.2, 0.16, 0.35, 'square');
+    tone(1760, offset + 0.4, 0.25, 0.35, 'square');
   }
+}
+
+// Plays both sounds so you can check them with your music on
+function testSounds() {
+  ensureAudio();
+  playMinuteBeep();
+  setTimeout(playTargetSound, 1200);
 }
 
 // ---------- Keeping the screen awake (Screen Wake Lock API) ----------
@@ -511,6 +524,7 @@ $('btn-start').addEventListener('click', startWorkout);
 $('btn-history').addEventListener('click', () => show('history'));
 $('btn-history-back').addEventListener('click', () => show('home'));
 $('btn-my-lifts').addEventListener('click', () => show('lifts'));
+$('btn-test-sound').addEventListener('click', testSounds);
 $('btn-lift').addEventListener('click', () => show('lifts'));
 $('btn-lifts-back').addEventListener('click', () => show(data.active ? 'workout' : 'home'));
 $('btn-edit-lifts').addEventListener('click', () => { editingLifts = !editingLifts; renderLifts(); });
