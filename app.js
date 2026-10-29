@@ -137,6 +137,19 @@ function lastSetFor(liftId) {
   return null;
 }
 
+// The sets you did for a lift in your most recent earlier workout (not the one in progress).
+// Also matches by name, so a lift you deleted and re-added still finds its old sessions.
+function lastSession(lift) {
+  const name = lift.name.toLowerCase();
+  for (let i = data.workouts.length - 1; i >= 0; i--) {
+    const w = data.workouts[i];
+    if (data.active && w.id === data.active.workoutId) continue;
+    const ex = w.exercises.find((e) => e.liftId === lift.id || e.liftName.toLowerCase() === name);
+    if (ex && ex.sets.length) return { date: w.startedAt, sets: ex.sets };
+  }
+  return null;
+}
+
 // ---------- Screens ----------
 
 function show(screenName) {
@@ -269,21 +282,32 @@ function tick() {
   if (!rest) {
     timerEl.textContent = '0:00';
     timerEl.className = 'timer';
+    $('timer-box').classList.remove('done');
     return;
   }
   const elapsed = Date.now() - rest.startedAt;
   const target = restTargetSec() * 1000;
   timerEl.textContent = fmt(elapsed / 1000);
   timerEl.className = 'timer ' + (elapsed >= target ? 'done' : 'resting');
+  $('timer-box').classList.toggle('done', elapsed >= target);
 
   if (!beeps.targetHit && elapsed >= target) {
     beeps.targetHit = true;
     beeps.minutes = Math.floor(elapsed / MIN); // skip the minute beep if it lands at the same moment
     playTargetSound();
+    flashScreen();
   } else if (Math.floor(elapsed / MIN) > beeps.minutes) {
     beeps.minutes = Math.floor(elapsed / MIN);
     playMinuteBeep();
   }
+}
+
+// Pulses the whole screen blue (the animation is in style.css)
+function flashScreen() {
+  document.body.classList.remove('flash');
+  void document.body.offsetWidth; // forces the browser to notice the removal, so the animation restarts
+  document.body.classList.add('flash');
+  setTimeout(() => document.body.classList.remove('flash'), 2600);
 }
 
 // Update the display 4 times a second. Because tick() uses timestamps, a missed update doesn't matter.
@@ -404,6 +428,15 @@ function renderWorkout() {
   const resting = !!data.active.rest;
 
   $('lift-name').textContent = lift ? lift.name : 'Pick a lift';
+
+  const prev = lift && lastSession(lift);
+  if (prev) {
+    const date = new Date(prev.date).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+    const sets = prev.sets.map((s) => `${s.weight}×${s.reps}`).join(' · ');
+    $('last-time').innerHTML = `Last time (${date}): <strong>${sets}</strong>`;
+  } else {
+    $('last-time').textContent = lift ? 'First time logging this lift' : '';
+  }
   // While resting, show the target for the lift you're resting from
   $('target').textContent = fmt(resting ? restTargetSec() : (lift ? lift.restSec : 0));
 

@@ -67,7 +67,16 @@ button:active { transform: scale(0.98); opacity: 0.85; }
 }
 .lift-switch .chev { font-size: 16px; color: var(--muted); font-weight: 600; white-space: nowrap; }
 
+.last-time { color: var(--muted); font-size: 17px; line-height: 1.35; padding: 0 4px; margin-top: -4px; }
+.last-time strong { color: var(--text); font-variant-numeric: tabular-nums; }
+
 .timer-box { background: var(--panel); border-radius: var(--radius); padding: 10px 12px 14px; text-align: center; }
+/* Stays outlined in blue for as long as you're past your target */
+.timer-box.done { outline: 4px solid var(--done); }
+
+/* Whole screen pulses blue 4 times when you hit your target */
+body.flash { animation: flash 0.6s ease-in-out 4; }
+@keyframes flash { 50% { background: var(--done); } }
 .timer {
   font-size: 96px; font-weight: 800; line-height: 1.05;
   font-variant-numeric: tabular-nums; /* digits don't jiggle as they change */

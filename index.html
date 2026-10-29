@@ -15,7 +15,7 @@
   <link rel="apple-touch-icon" href="icon-180.png">
   <link rel="manifest" href="manifest.webmanifest">
   <!-- Bump ?v= whenever style.css or app.js changes, so browsers fetch the new copy instead of a cached one -->
-  <link rel="stylesheet" href="style.css?v=4">
+  <link rel="stylesheet" href="style.css?v=5">
 </head>
 <body>
 
@@ -36,6 +36,9 @@
       <span id="lift-name">Pick a lift</span>
       <span class="chev">Change ▾</span>
     </button>
+
+    <!-- What you did for this lift in your previous workout -->
+    <div id="last-time" class="last-time"></div>
 
     <div class="timer-box" id="timer-box">
       <div id="timer" class="timer">0:00</div>
@@ -112,6 +115,6 @@
     <div id="history-list"></div>
   </section>
 
-  <script src="app.js?v=4"></script>
+  <script src="app.js?v=5"></script>
 </body>
 </html>
