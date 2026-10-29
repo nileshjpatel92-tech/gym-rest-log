@@ -104,6 +104,27 @@ button:active { transform: scale(0.98); opacity: 0.85; }
 .lift-list .pick { flex: 1; text-align: left; background: transparent; min-height: 64px; padding: 0 16px; font-size: 21px; font-weight: 700; }
 .lift-list .rest { background: #2a2a2f; min-height: 48px; margin-right: 8px; padding: 0 12px; font-size: 16px; color: var(--muted); }
 .lift-list li.current { outline: 3px solid var(--accent); }
+.lift-list li.group-head {
+  background: transparent; padding: 14px 4px 0;
+  color: var(--muted); font-size: 15px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase;
+}
+.lift-list .remove { background: transparent; color: var(--danger); border: 2px solid var(--danger); min-height: 48px; margin-right: 8px; padding: 0 14px; font-size: 16px; font-weight: 700; }
+.lift-list .rest-hint { color: var(--muted); font-size: 16px; padding-right: 16px; white-space: nowrap; }
+.lift-list .note { background: transparent; color: var(--muted); padding: 8px 4px; }
+
+.header-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.header-row h2 { flex: 1; text-align: center; font-size: 24px; }
+.header-row .spacer { min-width: 76px; }
+
+.search {
+  width: 100%; min-height: 60px; padding: 0 18px;
+  background: var(--panel); color: var(--text); border: 2px solid #2a2a2f; border-radius: var(--radius);
+  font: inherit; font-size: 20px; /* 16px+ stops iOS zooming in when you tap it */
+}
+.search:focus { outline: none; border-color: var(--accent); }
+.custom-box { background: var(--panel); border-radius: var(--radius); padding: 4px 14px 14px; font-size: 18px; }
+.group-btns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.group-btns .pill { min-height: 56px; background: var(--accent); color: var(--accent-text); }
 
 .workout-card { background: var(--panel); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 12px; }
 .workout-card h3 { margin: 0 0 6px; font-size: 20px; }

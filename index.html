@@ -25,6 +25,7 @@
     <h1 class="title">Rest Log</h1>
     <button id="btn-start" class="big primary">Start workout</button>
     <button id="btn-history" class="big secondary">History</button>
+    <button id="btn-my-lifts" class="big secondary">My lifts</button>
   </section>
 
   <!-- ACTIVE WORKOUT -->
@@ -69,12 +70,34 @@
     <button id="btn-end" class="big danger">End workout</button>
   </section>
 
-  <!-- LIFT PICKER -->
+  <!-- LIFT PICKER (also "My lifts" from the home screen) -->
   <section id="screen-lifts" class="screen" hidden>
-    <h2>Pick a lift</h2>
-    <ul id="lift-list" class="lift-list"></ul>
+    <div class="header-row">
+      <button id="btn-lifts-back" class="pill">‹ Back</button>
+      <h2 id="lifts-title">Pick a lift</h2>
+      <button id="btn-edit-lifts" class="pill">Edit</button>
+    </div>
     <button id="btn-add-lift" class="big secondary">+ Add a lift</button>
-    <button id="btn-lifts-back" class="big ghost">Back</button>
+    <ul id="lift-list" class="lift-list"></ul>
+  </section>
+
+  <!-- ADD A LIFT: type to filter the common lifts, or add your own -->
+  <section id="screen-add" class="screen" hidden>
+    <div class="header-row">
+      <button id="btn-add-back" class="pill">‹ Back</button>
+      <h2>Add a lift</h2>
+      <span class="spacer"></span>
+    </div>
+    <input id="add-search" class="search" type="text" placeholder="Type to search…" autocomplete="off" autocorrect="off" autocapitalize="words" enterkeyhint="done">
+    <ul id="add-results" class="lift-list"></ul>
+    <div id="add-custom" class="custom-box" hidden>
+      <p>Not listed? Add “<strong id="custom-name"></strong>” as your own lift:</p>
+      <div class="group-btns">
+        <button class="pill" data-group="push">Push</button>
+        <button class="pill" data-group="pull">Pull</button>
+        <button class="pill" data-group="legs">Legs</button>
+      </div>
+    </div>
   </section>
 
   <!-- HISTORY -->

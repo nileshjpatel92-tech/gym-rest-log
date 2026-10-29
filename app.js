@@ -2,7 +2,7 @@
 //
 // How the saved data is shaped (one object in localStorage):
 // {
-//   lifts:    [{ id, name, restSec }],
+//   lifts:    [{ id, name, group, restSec }],        group is 'push', 'pull' or 'legs'
 //   workouts: [{ id, startedAt, endedAt,
 //                exercises: [{ liftId, liftName,
 //                              sets: [{ id, weight, reps, doneAt, restTargetSec, restSec }] }] }],
@@ -13,10 +13,40 @@
 const STORAGE_KEY = 'restlog.v1';
 const MIN = 60 * 1000;
 
+const GROUPS = [['push', 'Push'], ['pull', 'Pull'], ['legs', 'Legs']];
+
+// Common lifts you can add from the "Add a lift" screen: [name, group, suggested rest in seconds].
+// Rest follows the usual rule of thumb: heavy compound lifts 2–3 min, accessories 60–90 s.
+const CATALOG = [
+  // Push: chest, shoulders, triceps
+  ['Bench Press', 'push', 150], ['Incline Bench Press', 'push', 150], ['Decline Bench Press', 'push', 120],
+  ['Close-Grip Bench Press', 'push', 120], ['Dumbbell Bench Press', 'push', 120], ['Incline Dumbbell Press', 'push', 120],
+  ['Machine Chest Press', 'push', 90], ['Overhead Press', 'push', 120], ['Push Press', 'push', 150],
+  ['Seated Dumbbell Shoulder Press', 'push', 120], ['Arnold Press', 'push', 90], ['Dips', 'push', 120],
+  ['Push-up', 'push', 60], ['Cable Fly', 'push', 60], ['Dumbbell Fly', 'push', 60], ['Pec Deck', 'push', 60],
+  ['Lateral Raise', 'push', 60], ['Front Raise', 'push', 60], ['Tricep Pushdown', 'push', 60],
+  ['Overhead Tricep Extension', 'push', 60], ['Skull Crusher', 'push', 75],
+  // Pull: back, rear delts, biceps
+  ['Deadlift', 'pull', 180], ['Rack Pull', 'pull', 150], ['Barbell Row', 'pull', 120], ['Pendlay Row', 'pull', 120],
+  ['T-Bar Row', 'pull', 120], ['Dumbbell Row', 'pull', 90], ['Seated Cable Row', 'pull', 90],
+  ['Chest-Supported Row', 'pull', 90], ['Pull-up', 'pull', 120], ['Chin-up', 'pull', 120], ['Lat Pulldown', 'pull', 90],
+  ['Straight-Arm Pulldown', 'pull', 60], ['Face Pull', 'pull', 60], ['Reverse Fly', 'pull', 60], ['Shrug', 'pull', 75],
+  ['Barbell Curl', 'pull', 60], ['Dumbbell Curl', 'pull', 60], ['Hammer Curl', 'pull', 60],
+  ['Preacher Curl', 'pull', 60], ['Cable Curl', 'pull', 60], ['Incline Dumbbell Curl', 'pull', 60],
+  // Legs: quads, hamstrings, glutes, calves
+  ['Squat', 'legs', 180], ['Front Squat', 'legs', 180], ['Sumo Deadlift', 'legs', 180], ['Romanian Deadlift', 'legs', 120],
+  ['Good Morning', 'legs', 120], ['Hip Thrust', 'legs', 120], ['Leg Press', 'legs', 120], ['Hack Squat', 'legs', 120],
+  ['Goblet Squat', 'legs', 90], ['Bulgarian Split Squat', 'legs', 90], ['Walking Lunge', 'legs', 90],
+  ['Step-up', 'legs', 90], ['Leg Extension', 'legs', 60], ['Lying Leg Curl', 'legs', 60], ['Seated Leg Curl', 'legs', 60],
+  ['Hip Abduction', 'legs', 60], ['Standing Calf Raise', 'legs', 60], ['Seated Calf Raise', 'legs', 60],
+];
+
+const catalogEntry = (name) => CATALOG.find(([n]) => n.toLowerCase() === name.toLowerCase());
+
+// The lifts a brand-new install starts with
 const DEFAULT_LIFTS = [
-  ['Squat', 180], ['Deadlift', 180], ['Bench Press', 150], ['Overhead Press', 120],
-  ['Barbell Row', 120], ['Romanian Deadlift', 120], ['Pull-up', 120], ['Leg Press', 120],
-  ['Lat Pulldown', 90], ['Dumbbell Curl', 60], ['Tricep Pushdown', 60], ['Lateral Raise', 60],
+  'Squat', 'Deadlift', 'Bench Press', 'Overhead Press', 'Barbell Row', 'Romanian Deadlift',
+  'Pull-up', 'Leg Press', 'Lat Pulldown', 'Dumbbell Curl', 'Tricep Pushdown', 'Lateral Raise',
 ];
 
 // ---------- Saving and loading ----------
@@ -28,11 +58,20 @@ function newId() {
 function load() {
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
-    if (saved && saved.lifts) return saved;
+    if (saved && saved.lifts) {
+      // Lifts saved before groups existed get their group from the catalog
+      for (const lift of saved.lifts) {
+        if (!lift.group) lift.group = (catalogEntry(lift.name) || [null, 'push'])[1];
+      }
+      return saved;
+    }
   } catch (e) { /* bad or missing data: fall through to a fresh start */ }
   return {
     version: 1,
-    lifts: DEFAULT_LIFTS.map(([name, restSec]) => ({ id: newId(), name, restSec })),
+    lifts: DEFAULT_LIFTS.map((name) => {
+      const [, group, restSec] = catalogEntry(name);
+      return { id: newId(), name, group, restSec };
+    }),
     workouts: [],
     active: null,
   };
@@ -105,7 +144,8 @@ function show(screenName) {
   $('screen-' + screenName).hidden = false;
   window.scrollTo(0, 0);
   if (screenName === 'workout') renderWorkout();
-  if (screenName === 'lifts') renderLifts();
+  if (screenName === 'lifts') { editingLifts = false; renderLifts(); }
+  if (screenName === 'add') { $('add-search').value = ''; renderAdd(); }
   if (screenName === 'history') renderHistory();
 }
 
@@ -370,23 +410,69 @@ function renderWorkout() {
   tick();
 }
 
-function renderLifts() {
-  const current = data.active && data.active.liftId;
-  $('lift-list').innerHTML = data.lifts.map((l) => `
-    <li class="${l.id === current ? 'current' : ''}">
-      <button class="pick" data-lift="${l.id}">${esc(l.name)}</button>
-      <button class="rest" data-rest="${l.id}">Rest ${fmt(l.restSec)}</button>
-    </li>`).join('');
-  $('btn-lifts-back').hidden = !(data.active && data.active.liftId);
+// True while the lift list shows Delete buttons instead of rest times
+let editingLifts = false;
+
+// Builds list items under Push / Pull / Legs headings. rowHtml(item) draws one row.
+function groupedList(items, groupOf, rowHtml) {
+  return GROUPS.map(([key, label]) => {
+    const inGroup = items.filter((item) => groupOf(item) === key);
+    if (!inGroup.length) return '';
+    return `<li class="group-head">${label}</li>` + inGroup.map(rowHtml).join('');
+  }).join('');
 }
 
-function addLift() {
-  const name = prompt('Name of the lift:');
-  if (!name || !name.trim()) return;
-  const restSec = parseDuration(prompt('Rest target (e.g. 1:30 or 90):', '1:30')) || 90;
-  data.lifts.push({ id: newId(), name: name.trim(), restSec });
+function renderLifts() {
+  const current = data.active && data.active.liftId;
+  $('lifts-title').textContent = data.active ? 'Pick a lift' : 'My lifts';
+  $('btn-edit-lifts').textContent = editingLifts ? 'Done' : 'Edit';
+  $('btn-add-lift').hidden = editingLifts;
+  const sorted = data.lifts.slice().sort((a, b) => a.name.localeCompare(b.name));
+  $('lift-list').innerHTML = groupedList(sorted, (l) => l.group, (l) => `
+    <li class="${l.id === current ? 'current' : ''}">
+      <button class="pick" data-lift="${l.id}">${esc(l.name)}</button>
+      ${editingLifts
+        ? `<button class="remove" data-remove="${l.id}">Delete</button>`
+        : `<button class="rest" data-rest="${l.id}">Rest ${fmt(l.restSec)}</button>`}
+    </li>`) || '<li class="note">No lifts yet. Tap “+ Add a lift”.</li>';
+}
+
+function deleteLift(liftId) {
+  const lift = liftById(liftId);
+  if (!confirm(`Remove ${lift.name} from your list? Past workouts keep their sets.`)) return;
+  data.lifts = data.lifts.filter((l) => l.id !== liftId);
+  if (data.active && data.active.liftId === liftId) data.active.liftId = null;
   save();
   renderLifts();
+}
+
+// The "Add a lift" screen: common lifts you don't have yet, filtered by what you type.
+// Every typed word must appear in the name, so "db pr" won't match but "dumb press" will.
+function renderAdd() {
+  const query = $('add-search').value.trim();
+  const words = query.toLowerCase().split(/\s+/);
+  const have = new Set(data.lifts.map((l) => l.name.toLowerCase()));
+  const matches = CATALOG.filter(([name]) =>
+    !have.has(name.toLowerCase()) && words.every((w) => name.toLowerCase().includes(w)));
+
+  // Offer "add your own" when the typed name isn't already an exact catalog or list match
+  const alreadyHave = have.has(query.toLowerCase());
+  $('add-custom').hidden = !query || alreadyHave || !!catalogEntry(query);
+  $('custom-name').textContent = query;
+
+  let html = groupedList(matches, (m) => m[1], ([name, , rest]) => `
+    <li>
+      <button class="pick" data-catalog="${esc(name)}">${esc(name)}</button>
+      <span class="rest-hint">Rest ${fmt(rest)}</span>
+    </li>`);
+  if (alreadyHave) html = `<li class="note">“${esc(query)}” is already in your list.</li>` + html;
+  $('add-results').innerHTML = html;
+}
+
+function addLift(name, group, restSec) {
+  data.lifts.push({ id: newId(), name, group, restSec });
+  save();
+  show('lifts');
 }
 
 function editRest(liftId) {
@@ -424,9 +510,15 @@ function renderHistory() {
 $('btn-start').addEventListener('click', startWorkout);
 $('btn-history').addEventListener('click', () => show('history'));
 $('btn-history-back').addEventListener('click', () => show('home'));
+$('btn-my-lifts').addEventListener('click', () => show('lifts'));
 $('btn-lift').addEventListener('click', () => show('lifts'));
-$('btn-lifts-back').addEventListener('click', () => show('workout'));
-$('btn-add-lift').addEventListener('click', addLift);
+$('btn-lifts-back').addEventListener('click', () => show(data.active ? 'workout' : 'home'));
+$('btn-edit-lifts').addEventListener('click', () => { editingLifts = !editingLifts; renderLifts(); });
+$('btn-add-lift').addEventListener('click', () => show('add'));
+$('btn-add-back').addEventListener('click', () => show('lifts'));
+$('add-search').addEventListener('input', renderAdd);
+// The keyboard's "Done" key just hides the keyboard
+$('add-search').addEventListener('keydown', (e) => { if (e.key === 'Enter') e.target.blur(); });
 $('btn-main').addEventListener('click', onMainButton);
 $('btn-end').addEventListener('click', endWorkout);
 $('btn-target-down').addEventListener('click', () => changeTarget(-15));
@@ -440,8 +532,21 @@ for (const b of document.querySelectorAll('.step')) {
 $('lift-list').addEventListener('click', (e) => {
   const pick = e.target.closest('[data-lift]');
   const rest = e.target.closest('[data-rest]');
-  if (pick) selectLift(pick.dataset.lift);
+  const remove = e.target.closest('[data-remove]');
+  // Picking only makes sense during a workout, and not while deleting
+  if (pick && data.active && !editingLifts) selectLift(pick.dataset.lift);
   if (rest) editRest(rest.dataset.rest);
+  if (remove) deleteLift(remove.dataset.remove);
+});
+$('add-results').addEventListener('click', (e) => {
+  const item = e.target.closest('[data-catalog]');
+  if (!item) return;
+  const [name, group, restSec] = catalogEntry(item.dataset.catalog);
+  addLift(name, group, restSec);
+});
+$('add-custom').addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-group]');
+  if (btn) addLift($('add-search').value.trim(), btn.dataset.group, 90);
 });
 $('set-list').addEventListener('click', (e) => {
   const del = e.target.closest('[data-set]');
