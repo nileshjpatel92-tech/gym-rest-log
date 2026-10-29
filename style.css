@@ -1,0 +1,114 @@
+/* Colors live in variables so they're easy to tweak in one place */
+:root {
+  --bg: #0b0b0c;
+  --panel: #1a1a1d;
+  --text: #ffffff;
+  --muted: #a1a1aa;
+  --accent: #22c55e;      /* green: go / save */
+  --accent-text: #052e12;
+  --rest: #facc15;        /* yellow: resting */
+  --done: #38bdf8;        /* blue: target reached */
+  --danger: #ef4444;
+  --radius: 18px;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  -webkit-text-size-adjust: 100%;
+  /* Stops the grey flash iOS shows when you tap something */
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Padding respects the notch and home bar (the env(...) values come from iOS) */
+.screen {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 100dvh;
+  padding: calc(env(safe-area-inset-top) + 16px) 16px calc(env(safe-area-inset-bottom) + 24px);
+  max-width: 560px;
+  margin: 0 auto;
+}
+.screen[hidden] { display: none; }
+
+#screen-home { justify-content: center; }
+.title { font-size: 44px; text-align: center; margin: 0 0 24px; }
+h2 { font-size: 28px; margin: 4px 0; }
+
+button {
+  font: inherit;
+  color: inherit;
+  border: 0;
+  border-radius: var(--radius);
+  cursor: pointer;
+  touch-action: manipulation; /* no double-tap zoom delay */
+}
+button:active { transform: scale(0.98); opacity: 0.85; }
+
+.big { min-height: 64px; font-size: 22px; font-weight: 700; padding: 0 20px; }
+.huge { min-height: 110px; font-size: 30px; font-weight: 800; }
+.primary { background: var(--accent); color: var(--accent-text); }
+.secondary { background: var(--panel); }
+.ghost { background: transparent; color: var(--muted); border: 2px solid var(--panel); }
+.danger { background: transparent; color: var(--danger); border: 2px solid var(--danger); margin-top: auto; }
+
+/* The big button turns yellow while you're resting */
+.huge.resting { background: var(--rest); color: #2a2100; }
+
+.lift-switch {
+  display: flex; justify-content: space-between; align-items: center;
+  background: var(--panel); min-height: 64px; padding: 0 18px;
+  font-size: 24px; font-weight: 800; text-align: left;
+}
+.lift-switch .chev { font-size: 16px; color: var(--muted); font-weight: 600; white-space: nowrap; }
+
+.timer-box { background: var(--panel); border-radius: var(--radius); padding: 10px 12px 14px; text-align: center; }
+.timer {
+  font-size: 96px; font-weight: 800; line-height: 1.05;
+  font-variant-numeric: tabular-nums; /* digits don't jiggle as they change */
+  color: var(--muted);
+}
+.timer.resting { color: var(--rest); }
+.timer.done { color: var(--done); }
+.target-row { display: flex; justify-content: space-between; align-items: center; font-size: 20px; color: var(--muted); }
+.target-row strong { color: var(--text); }
+.pill { background: #2a2a2f; min-height: 48px; min-width: 76px; font-size: 18px; font-weight: 700; }
+
+.inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.field label { display: block; font-size: 15px; color: var(--muted); margin: 0 0 4px 4px; }
+.stepper { display: flex; background: var(--panel); border-radius: var(--radius); overflow: hidden; }
+.step { background: transparent; width: 48px; font-size: 30px; font-weight: 700; border-radius: 0; flex: none; }
+.stepper input {
+  width: 100%; min-width: 0; min-height: 64px;
+  background: transparent; border: 0; color: var(--text);
+  font-size: 30px; font-weight: 800; text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.stepper input:focus { outline: none; background: #24242a; }
+
+.set-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.set-list li, .lift-list li {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  background: var(--panel); border-radius: 14px; padding: 12px 14px; font-size: 19px;
+}
+.set-list .meta { color: var(--muted); font-size: 16px; }
+.del { background: transparent; color: var(--muted); font-size: 22px; min-width: 44px; min-height: 44px; }
+
+.lift-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.lift-list li { padding: 0; }
+.lift-list .pick { flex: 1; text-align: left; background: transparent; min-height: 64px; padding: 0 16px; font-size: 21px; font-weight: 700; }
+.lift-list .rest { background: #2a2a2f; min-height: 48px; margin-right: 8px; padding: 0 12px; font-size: 16px; color: var(--muted); }
+.lift-list li.current { outline: 3px solid var(--accent); }
+
+.workout-card { background: var(--panel); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 12px; }
+.workout-card h3 { margin: 0 0 6px; font-size: 20px; }
+.workout-card h4 { margin: 12px 0 4px; font-size: 18px; color: var(--accent); }
+.workout-card table { width: 100%; border-collapse: collapse; font-size: 16px; font-variant-numeric: tabular-nums; }
+.workout-card td { padding: 3px 0; }
+.workout-card td:last-child { text-align: right; color: var(--muted); }
+.empty { color: var(--muted); text-align: center; font-size: 18px; }

@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <!-- viewport-fit=cover lets the app use the full iPhone screen, including behind the notch -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Rest Log</title>
+
+  <!-- These tags tell iOS to open the app full screen when launched from the home screen -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Rest Log">
+  <meta name="theme-color" content="#0b0b0c">
+  <link rel="apple-touch-icon" href="icon-180.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Each <section> is one "screen". The JavaScript shows one at a time. -->
+
+  <!-- HOME -->
+  <section id="screen-home" class="screen">
+    <h1 class="title">Rest Log</h1>
+    <button id="btn-start" class="big primary">Start workout</button>
+    <button id="btn-history" class="big secondary">History</button>
+  </section>
+
+  <!-- ACTIVE WORKOUT -->
+  <section id="screen-workout" class="screen" hidden>
+    <button id="btn-lift" class="lift-switch">
+      <span id="lift-name">Pick a lift</span>
+      <span class="chev">Change ▾</span>
+    </button>
+
+    <div class="timer-box" id="timer-box">
+      <div id="timer" class="timer">0:00</div>
+      <div class="target-row">
+        <button id="btn-target-down" class="pill">−15s</button>
+        <span>Target <strong id="target">2:00</strong></span>
+        <button id="btn-target-up" class="pill">+15s</button>
+      </div>
+    </div>
+
+    <div class="inputs">
+      <div class="field">
+        <label for="weight">Weight (lb)</label>
+        <div class="stepper">
+          <button class="step" data-field="weight" data-delta="-5">−</button>
+          <input id="weight" type="text" inputmode="decimal" autocomplete="off" placeholder="0">
+          <button class="step" data-field="weight" data-delta="5">+</button>
+        </div>
+      </div>
+      <div class="field">
+        <label for="reps">Reps</label>
+        <div class="stepper">
+          <button class="step" data-field="reps" data-delta="-1">−</button>
+          <input id="reps" type="text" inputmode="numeric" autocomplete="off" placeholder="0">
+          <button class="step" data-field="reps" data-delta="1">+</button>
+        </div>
+      </div>
+    </div>
+
+    <button id="btn-main" class="huge primary">Save set &amp; rest</button>
+
+    <ol id="set-list" class="set-list"></ol>
+
+    <button id="btn-end" class="big danger">End workout</button>
+  </section>
+
+  <!-- LIFT PICKER -->
+  <section id="screen-lifts" class="screen" hidden>
+    <h2>Pick a lift</h2>
+    <ul id="lift-list" class="lift-list"></ul>
+    <button id="btn-add-lift" class="big secondary">+ Add a lift</button>
+    <button id="btn-lifts-back" class="big ghost">Back</button>
+  </section>
+
+  <!-- HISTORY -->
+  <section id="screen-history" class="screen" hidden>
+    <h2>History</h2>
+    <div id="history-list"></div>
+    <button id="btn-history-back" class="big ghost">Back</button>
+  </section>
+
+  <script src="app.js"></script>
+</body>
+</html>
