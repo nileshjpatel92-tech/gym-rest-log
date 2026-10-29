@@ -128,6 +128,8 @@ button:active { transform: scale(0.98); opacity: 0.85; }
 
 .workout-card { background: var(--panel); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 12px; }
 .workout-card h3 { margin: 0 0 6px; font-size: 20px; }
+.workout-card .card-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.workout-card .remove { background: transparent; color: var(--danger); border: 2px solid var(--danger); min-height: 48px; padding: 0 14px; font-size: 16px; font-weight: 700; flex: none; }
 .workout-card h4 { margin: 12px 0 4px; font-size: 18px; color: var(--accent); }
 .workout-card table { width: 100%; border-collapse: collapse; font-size: 16px; font-variant-numeric: tabular-nums; }
 .workout-card td { padding: 3px 0; }

@@ -146,7 +146,7 @@ function show(screenName) {
   if (screenName === 'workout') renderWorkout();
   if (screenName === 'lifts') { editingLifts = false; renderLifts(); }
   if (screenName === 'add') { $('add-search').value = ''; renderAdd(); }
-  if (screenName === 'history') renderHistory();
+  if (screenName === 'history') { editingHistory = false; renderHistory(); }
 }
 
 // ---------- Sound (Web Audio API) ----------
@@ -499,8 +499,13 @@ function editRest(liftId) {
   renderLifts();
 }
 
+// True while each workout card shows a Delete button
+let editingHistory = false;
+
 function renderHistory() {
   const done = data.workouts.filter((w) => w.endedAt).slice().reverse();
+  $('btn-edit-history').hidden = !done.length;
+  $('btn-edit-history').textContent = editingHistory ? 'Done' : 'Edit';
   if (!done.length) {
     $('history-list').innerHTML = '<p class="empty">No workouts yet.</p>';
     return;
@@ -514,8 +519,16 @@ function renderHistory() {
         <tr><td>${i + 1}. ${s.weight} lb × ${s.reps}</td>
             <td>${s.restSec != null ? 'rest ' + fmt(s.restSec) + ' / ' + fmt(s.restTargetSec) : ''}</td></tr>`).join('')}
       </table>`).join('');
-    return `<div class="workout-card"><h3>${date} · ${mins} min</h3>${lifts}</div>`;
+    const del = editingHistory ? `<button class="remove" data-workout="${w.id}">Delete</button>` : '';
+    return `<div class="workout-card"><div class="card-top"><h3>${date} · ${mins} min</h3>${del}</div>${lifts}</div>`;
   }).join('');
+}
+
+function deleteWorkout(workoutId) {
+  if (!confirm('Delete this workout from your history? This can’t be undone.')) return;
+  data.workouts = data.workouts.filter((w) => w.id !== workoutId);
+  save();
+  renderHistory();
 }
 
 // ---------- Wiring buttons to actions ----------
@@ -523,6 +536,11 @@ function renderHistory() {
 $('btn-start').addEventListener('click', startWorkout);
 $('btn-history').addEventListener('click', () => show('history'));
 $('btn-history-back').addEventListener('click', () => show('home'));
+$('btn-edit-history').addEventListener('click', () => { editingHistory = !editingHistory; renderHistory(); });
+$('history-list').addEventListener('click', (e) => {
+  const del = e.target.closest('[data-workout]');
+  if (del) deleteWorkout(del.dataset.workout);
+});
 $('btn-my-lifts').addEventListener('click', () => show('lifts'));
 $('btn-test-sound').addEventListener('click', testSounds);
 $('btn-lift').addEventListener('click', () => show('lifts'));

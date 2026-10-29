@@ -15,7 +15,7 @@
   <link rel="apple-touch-icon" href="icon-180.png">
   <link rel="manifest" href="manifest.webmanifest">
   <!-- Bump ?v= whenever style.css or app.js changes, so browsers fetch the new copy instead of a cached one -->
-  <link rel="stylesheet" href="style.css?v=3">
+  <link rel="stylesheet" href="style.css?v=4">
 </head>
 <body>
 
@@ -104,11 +104,14 @@
 
   <!-- HISTORY -->
   <section id="screen-history" class="screen" hidden>
-    <h2>History</h2>
+    <div class="header-row">
+      <button id="btn-history-back" class="pill">‹ Back</button>
+      <h2>History</h2>
+      <button id="btn-edit-history" class="pill">Edit</button>
+    </div>
     <div id="history-list"></div>
-    <button id="btn-history-back" class="big ghost">Back</button>
   </section>
 
-  <script src="app.js?v=3"></script>
+  <script src="app.js?v=4"></script>
 </body>
 </html>
